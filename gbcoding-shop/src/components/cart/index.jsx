@@ -1,24 +1,5 @@
-import React, {useState, useEffect} from 'react'
-
-const items = [
-  {
-    sku: 'sku_GIHjIqgoy0NRrw', 
-    quantity: 1, 
-    price: 95600, 
-    name: 'Laptop Xiaomi RedmiBook 14 i7 10th 8/512Gb/MX250 Silver'
-  },
-  {
-    sku: 'sku_GIHhqA7QGTfpaG', 
-    quantity: 1, 
-    price: 1100, 
-    name: 'Table Lamp DeLux TF-06 New 60W E27 Black'},
-  {
-    sku: 'sku_GIHeSj0h00PAx1', 
-    quantity: 1, 
-    price: 33200, 
-    name: 'VR Glasses Oculus Go'
-  }
-]
+import React, {useState, useEffect, useContext} from 'react'
+import {CartContext} from './context'
 
 function formatPrice(price) {
   return `$${(price * 0.01).toFixed(2)}`
@@ -30,15 +11,15 @@ function totalPrice(items) {
 
 export default function Cart({stripeToken}) {
   const [stripe, setStripe] = useState(null)
+  const ctx = useContext(CartContext)
 
   useEffect(() => {
-    if (window.Stripe) setStripe(window.Stripe
-      (stripeToken))
+    if (window.Stripe) setStripe(window.Stripe(stripeToken))
   }, [stripeToken])
 
   function checkout() {
-    stripe.redirecetToCheckout({
-      items: items.map(item => ({
+    stripe.redirectToCheckout({
+      products: ctx.items.map(item => ({
         quantity: item.quantity,
         sku: item.sku
       })),
@@ -66,23 +47,23 @@ export default function Cart({stripeToken}) {
         </tr>
       </thead>
       <tbody>
-        {items.map(item => (
+        {ctx.items.map(item => (
         <tr>
           <td>{item.name}</td>
           <td><img src={`/images/${item.sku}.jpg`} alt={item.name} width={100}/></td>
           <td>{item.quantity}</td>
-          <td>{formatPrice(item.price)}</td>
+          <td>{formatPrice(item.price * item.quantity)}</td>
         </tr>
       ))}
       <tr>
         <td  style={{textAlign: 'right'}} colspan={3}>Total:</td>
-        <td>{formatPrice(totalPrice(items))}</td>
+        <td>{formatPrice(totalPrice(ctx.items))}</td>
       </tr>
       <tr>
-        <td  style={{textAlign: 'right'}} colspan={4}>
+        <td style={{textAlign: 'right'}} colspan={4}>
           <button onClick={checkout}>Checkout now with Stripe</button>
         </td>
-        <td>{formatPrice(totalPrice(items))}</td>
+        <td>{formatPrice(totalPrice(ctx.items))}</td>
       </tr>
       </tbody>
     </table>
